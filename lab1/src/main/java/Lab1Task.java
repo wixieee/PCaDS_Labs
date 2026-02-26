@@ -17,39 +17,104 @@ public class Lab1Task {
     private static final double tolerance = 1e-15;
 
     public static void main(String[] args) {
-        generateInputData(15_000_000, 200);
+        Scanner consoleScanner = new Scanner(System.in);
+        boolean running = true;
 
-        readInputData();
+        while (running) {
+            System.out.println("\n=== Головне меню ===");
+            System.out.println("1. Зчитати N та ітерації з файлу (" + FILE_NAME + ")");
+            System.out.println("2. Ввести N та ітерації вручну");
+            System.out.println("3. Згенерувати вхідний файл (тестові дані)");
+            System.out.println("4. Вихід");
+            System.out.print("Оберіть опцію: ");
 
+            String choiceStr = consoleScanner.nextLine();
+            int choice;
+            try {
+                choice = Integer.parseInt(choiceStr.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Будь ласка, введіть число.");
+                continue;
+            }
+
+            switch (choice) {
+                case 1:
+                    if (readInputData()) {
+                        runComputations();
+                    }
+                    break;
+                case 2:
+                    System.out.print("Введіть розмір сітки (N): ");
+                    N = Integer.parseInt(consoleScanner.nextLine().trim());
+                    System.out.print("Введіть макс. кількість ітерацій: ");
+                    maxIterations = Integer.parseInt(consoleScanner.nextLine().trim());
+                    runComputations();
+                    break;
+                case 3:
+                    System.out.print("Введіть розмір сітки (N) для генерації: ");
+                    int genN = Integer.parseInt(consoleScanner.nextLine().trim());
+                    System.out.print("Введіть макс. кількість ітерацій для генерації: ");
+                    int genIter = Integer.parseInt(consoleScanner.nextLine().trim());
+                    generateInputData(genN, genIter);
+                    break;
+                case 4:
+                    running = false;
+                    System.out.println("Завершення роботи.");
+                    break;
+                default:
+                    System.out.println("Невірний вибір. Спробуйте ще раз.");
+            }
+        }
+        consoleScanner.close();
+    }
+
+    private static void runComputations() {
+        System.out.println("\n--- Запуск обчислень ---");
         System.out.println("Розмір сітки (N): " + N);
         System.out.println("Макс. ітерацій: " + maxIterations);
 
+        System.out.println("\n[1] Виконання послідовної версії...");
         double[] resultSeq = solveSequential();
         saveResults("Послідовний розв'язок", resultSeq, false);
 
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        System.out.println("Кількість потоків: " + numThreads);
+        int cores = Runtime.getRuntime().availableProcessors();
+        int maxThreads = cores * 2;
+        System.out.println("\n[2] Виконання паралельної версії...");
+        System.out.println("Доступно фізичних/логічних ядер: " + cores);
+        System.out.println("Тестування від 1 до " + maxThreads + " потоків:\n");
 
-        double[] resultPar = solveParallel(numThreads);
-        saveResults("Паралельний розв'язок", resultPar, true);
+        double[] resultPar = null;
+        for (int threads = 1; threads <= maxThreads; threads++) {
+            resultPar = solveParallel(threads);
+        }
+
+        if (resultPar != null) {
+            saveResults("Паралельний розв'язок (" + maxThreads + " потоків)", resultPar, true);
+        }
     }
 
     private static void generateInputData(int gridSize, int maxIter) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
             writer.println(gridSize);
             writer.println(maxIter);
-            System.out.println("Вхідні дані згенеровано у файл " + FILE_NAME);
+            System.out.println("Вхідні дані успішно згенеровано у файл " + FILE_NAME);
         } catch (IOException e) {
             System.err.println("Помилка запису файлу: " + e.getMessage());
         }
     }
 
-    private static void readInputData() {
+    private static boolean readInputData() {
         try (Scanner scanner = new Scanner(new File(FILE_NAME))) {
             N = scanner.nextInt();
             maxIterations = scanner.nextInt();
+            System.out.println("Дані успішно зчитано.");
+            return true;
         } catch (FileNotFoundException e) {
-            System.err.println("Файл не знайдено: " + e.getMessage());
+            System.err.println("Файл не знайдено: " + e.getMessage() + ". Спробуйте спочатку згенерувати його (Опція 3).");
+            return false;
+        } catch (Exception e) {
+            System.err.println("Помилка читання файлу (невірний формат даних).");
+            return false;
         }
     }
 
@@ -88,7 +153,6 @@ public class Lab1Task {
 
         int iter;
         for (iter = 0; iter < maxIterations; iter++) {
-
             double[] currentY = (iter % 2 == 0) ? y : yNew;
             double[] nextY = (iter % 2 == 0) ? yNew : y;
 
@@ -115,6 +179,11 @@ public class Lab1Task {
 
     private static double[] solveParallel(int numThreads) {
         converged = false;
+
+        if (numThreads > N - 1 && N > 1) {
+            numThreads = N - 1;
+        }
+
         double[] y = new double[N + 1];
         double[] yNew = new double[N + 1];
         double h = 1.0 / N;
@@ -136,6 +205,7 @@ public class Lab1Task {
         });
 
         int chunkSize = (N - 1) / numThreads;
+        int actualNumThreads = numThreads;
 
         long startTime = System.nanoTime();
 
@@ -180,11 +250,15 @@ public class Lab1Task {
         }
 
         for (Thread thread : threads) {
-            try { thread.join(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            try {
+                if (thread != null) thread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         long endTime = System.nanoTime();
-        System.out.println("Паралельний час: " + (endTime - startTime) / 1_000_000 + " мс");
+        System.out.printf("Паралельний час (%2d потоків): %5d мс%n", actualNumThreads, (endTime - startTime) / 1_000_000);
         return y;
     }
 }
