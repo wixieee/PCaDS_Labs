@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.concurrent.CyclicBarrier;
 
@@ -15,6 +16,8 @@ public class Lab1Task {
     private static int N;
     private static int maxIterations;
     private static final double tolerance = 1e-15;
+    private static double kParam = 1.0;
+    private static int fChoice = 1;
 
     public static void main(String[] args) {
         Scanner consoleScanner = new Scanner(System.in);
@@ -22,8 +25,9 @@ public class Lab1Task {
 
         while (running) {
             System.out.println("\n=== Головне меню ===");
-            System.out.println("1. Зчитати N та ітерації з файлу (" + FILE_NAME + ")");
-            System.out.println("2. Ввести N та ітерації вручну");
+            System.out.println("Рівняння: -y'' + k*y = f(x)");
+            System.out.println("1. Зчитати дані з файлу (" + FILE_NAME + ")");
+            System.out.println("2. Ввести параметри вручну");
             System.out.println("3. Згенерувати вхідний файл (тестові дані)");
             System.out.println("4. Вихід");
             System.out.print("Оберіть опцію: ");
@@ -48,6 +52,18 @@ public class Lab1Task {
                     N = Integer.parseInt(consoleScanner.nextLine().trim());
                     System.out.print("Введіть макс. кількість ітерацій: ");
                     maxIterations = Integer.parseInt(consoleScanner.nextLine().trim());
+
+                    System.out.print("Введіть коефіцієнт k (наприклад, 1.0): ");
+                    kParam = Double.parseDouble(consoleScanner.nextLine().trim());
+
+                    System.out.println("Оберіть функцію f(x):");
+                    System.out.println(" 1 -> f(x) = x");
+                    System.out.println(" 2 -> f(x) = sin(x)");
+                    System.out.println(" 3 -> f(x) = e^x");
+                    System.out.println(" 4 -> f(x) = 100 (константа)");
+                    System.out.print("Ваш вибір (1-4): ");
+                    fChoice = Integer.parseInt(consoleScanner.nextLine().trim());
+
                     runComputations();
                     break;
                 case 3:
@@ -55,7 +71,13 @@ public class Lab1Task {
                     int genN = Integer.parseInt(consoleScanner.nextLine().trim());
                     System.out.print("Введіть макс. кількість ітерацій для генерації: ");
                     int genIter = Integer.parseInt(consoleScanner.nextLine().trim());
-                    generateInputData(genN, genIter);
+
+                    System.out.print("Введіть коефіцієнт k: ");
+                    double genK = Double.parseDouble(consoleScanner.nextLine().trim());
+                    System.out.print("Оберіть функцію f(x) (1-4): ");
+                    int genF = Integer.parseInt(consoleScanner.nextLine().trim());
+
+                    generateInputData(genN, genIter, genK, genF);
                     break;
                 case 4:
                     running = false;
@@ -68,10 +90,31 @@ public class Lab1Task {
         consoleScanner.close();
     }
 
+    private static double evaluateF(int choice, double x) {
+        return switch (choice) {
+            case 1 -> x;
+            case 2 -> Math.sin(x);
+            case 3 -> Math.exp(x);
+            case 4 -> 100.0;
+            default -> x;
+        };
+    }
+
+    private static String getFunctionName(int choice) {
+        return switch (choice) {
+            case 1 -> "x";
+            case 2 -> "sin(x)";
+            case 3 -> "e^x";
+            case 4 -> "100";
+            default -> "x";
+        };
+    }
+
     private static void runComputations() {
         System.out.println("\n--- Запуск обчислень ---");
         System.out.println("Розмір сітки (N): " + N);
         System.out.println("Макс. ітерацій: " + maxIterations);
+        System.out.println("Рівняння: -y'' + " + kParam + "*y = " + getFunctionName(fChoice));
 
         System.out.println("\n[1] Виконання послідовної версії...");
         double[] resultSeq = solveSequential();
@@ -93,10 +136,12 @@ public class Lab1Task {
         }
     }
 
-    private static void generateInputData(int gridSize, int maxIter) {
+    private static void generateInputData(int gridSize, int maxIter, double k, int f) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
             writer.println(gridSize);
             writer.println(maxIter);
+            writer.println(k);
+            writer.println(f);
             System.out.println("Вхідні дані успішно згенеровано у файл " + FILE_NAME);
         } catch (IOException e) {
             System.err.println("Помилка запису файлу: " + e.getMessage());
@@ -105,8 +150,11 @@ public class Lab1Task {
 
     private static boolean readInputData() {
         try (Scanner scanner = new Scanner(new File(FILE_NAME))) {
+            scanner.useLocale(Locale.US);
             N = scanner.nextInt();
             maxIterations = scanner.nextInt();
+            kParam = scanner.nextDouble();
+            fChoice = scanner.nextInt();
             System.out.println("Дані успішно зчитано.");
             return true;
         } catch (FileNotFoundException e) {
@@ -142,11 +190,12 @@ public class Lab1Task {
         double[] yNew = new double[N + 1];
         double h = 1.0 / N;
         double h2 = h * h;
-        double denominator = 2 + h2;
+
+        double denominator = 2 + kParam * h2;
 
         double[] consts = new double[N + 1];
         for (int i = 1; i < N; i++) {
-            consts[i] = h2 * (i * h);
+            consts[i] = h2 * evaluateF(fChoice, i * h);
         }
 
         long startTime = System.nanoTime();
@@ -188,7 +237,8 @@ public class Lab1Task {
         double[] yNew = new double[N + 1];
         double h = 1.0 / N;
         double h2 = h * h;
-        double denominator = 2 + h2;
+
+        double denominator = 2 + kParam * h2;
 
         Thread[] threads = new Thread[numThreads];
         double[] threadMaxDiffs = new double[numThreads];
@@ -217,7 +267,7 @@ public class Lab1Task {
             threads[tId] = new Thread(() -> {
                 double[] localConsts = new double[endIdx - startIdx];
                 for (int i = startIdx; i < endIdx; i++) {
-                    localConsts[i - startIdx] = h2 * (i * h);
+                    localConsts[i - startIdx] = h2 * evaluateF(fChoice, i * h);
                 }
 
                 int iter;
@@ -258,7 +308,7 @@ public class Lab1Task {
         }
 
         long endTime = System.nanoTime();
-        System.out.printf("Паралельний час (%2d потоків): %5d мс%n", actualNumThreads, (endTime - startTime) / 1_000_000);
+        System.out.printf("Паралельний час (%2d потоків ): %5d мс%n", actualNumThreads, (endTime - startTime) / 1_000_000);
         return y;
     }
 }
