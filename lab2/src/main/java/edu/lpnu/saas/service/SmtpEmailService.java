@@ -35,6 +35,17 @@ public class SmtpEmailService {
         sendEmail(toEmail, subject, htmlBody);
     }
 
+    public void sendInvitationWithCredentialsEmail(String toEmail, String orgName, String password) {
+        Context context = new Context();
+        context.setVariable("orgName", orgName);
+        context.setVariable("email", toEmail);
+        context.setVariable("password", password);
+        context.setVariable("loginLink", baseUrl + "/auth/login");
+
+        String htmlBody = templateEngine.process("invite-new-user", context);
+        sendEmail(toEmail, "Запрошення в " + orgName + " та дані для входу", htmlBody);
+    }
+
     private void sendEmail(String toEmail, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

@@ -18,5 +18,4 @@ public class ResetPasswordRequest {
     @NotBlank(message = "Новий пароль не може бути порожнім")
     @Size(min = 6, message = "Пароль має містити мінімум 6 символів")
     private String newPassword;
-
 }
