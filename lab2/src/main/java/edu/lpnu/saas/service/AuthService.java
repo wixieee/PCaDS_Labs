@@ -6,6 +6,7 @@ import edu.lpnu.saas.dto.request.RefreshTokenRequest;
 import edu.lpnu.saas.dto.request.RegistrationRequest;
 import edu.lpnu.saas.dto.request.ResetPasswordRequest;
 import edu.lpnu.saas.dto.response.AuthResponse;
+import edu.lpnu.saas.exception.types.AlreadyExistsException;
 import edu.lpnu.saas.exception.types.InvalidTokenException;
 import edu.lpnu.saas.exception.types.NotFoundException;
 import edu.lpnu.saas.model.Membership;
@@ -15,7 +16,7 @@ import edu.lpnu.saas.model.VerificationToken;
 import edu.lpnu.saas.repository.MembershipRepository;
 import edu.lpnu.saas.repository.UserRepository;
 import edu.lpnu.saas.repository.VerificationTokenRepository;
-import edu.lpnu.saas.security.JWTService;
+import edu.lpnu.saas.security.JwtService;
 import edu.lpnu.saas.security.RefreshTokenService;
 import edu.lpnu.saas.security.UserDetailsImpl;
 import edu.lpnu.saas.util.mapper.UserMapper;
@@ -43,7 +44,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final UserMapper userMapper;
-    private final JWTService jwtService;
+    private final JwtService jwtService;
 
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
@@ -56,6 +57,9 @@ public class AuthService {
     }
 
     public AuthResponse register(RegistrationRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new AlreadyExistsException("Користувач уже існує");
+        }
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
@@ -125,6 +129,7 @@ public class AuthService {
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("memberships", rolesMap);
+        extraClaims.put("userId", user.getId());
 
         UserDetailsImpl userDetails = new UserDetailsImpl(user);
         String accessToken = jwtService.generateToken(extraClaims, userDetails);

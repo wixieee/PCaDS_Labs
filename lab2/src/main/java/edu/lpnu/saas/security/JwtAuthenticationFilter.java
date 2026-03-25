@@ -13,8 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -30,8 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JWTService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final JwtService jwtService;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Override
@@ -52,39 +49,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String email = jwtService.extractEmail(jwt);
+            Long userId = jwtService.extractUserId(jwt);
 
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            if (email != null && userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                Map<String, String> memberships = jwtService.extractMemberships(jwt);
+                List<GrantedAuthority> authorities = new ArrayList<>();
+                memberships.forEach((orgId, role) -> {
+                    authorities.add(new SimpleGrantedAuthority("ORG_" + orgId + "_" + role));
+                });
 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
-                    Map<String, String> memberships = jwtService.extractMemberships(jwt);
+                JwtPrincipal principal = new JwtPrincipal(userId, email);
 
-                    List<GrantedAuthority> authorities = new ArrayList<>();
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        principal,
+                        null,
+                        authorities
+                );
 
-                    memberships.forEach((orgId, role) -> {
-                        authorities.add(new SimpleGrantedAuthority("ORG_" + orgId + "_" + role));
-                    });
-
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            authorities
-                    );
-
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-            filterChain.doFilter(request, response);
 
         } catch (ExpiredJwtException e) {
             handlerExceptionResolver.resolveException(request, response, null, e);
+            return;
         } catch (SignatureException e) {
             log.error("Недійсний підпис JWT з IP {}. Помилка: {}", request.getRemoteAddr(), e.getMessage());
             handlerExceptionResolver.resolveException(request, response, null, e);
+            return;
         } catch (Exception e) {
             log.warn("Помилка валідації JWT: {}", e.getMessage());
             handlerExceptionResolver.resolveException(request, response, null, e);
+            return;
         }
+
+        filterChain.doFilter(request, response);
     }
 }

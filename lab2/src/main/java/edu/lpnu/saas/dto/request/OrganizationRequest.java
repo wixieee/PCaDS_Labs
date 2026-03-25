@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LoginRequest {
+public class OrganizationRequest {
+    @NotBlank(message = "Назва організації не може бути порожньою")
+    private String name;
+
     @NotBlank(message = "Email не може бути порожнім")
     @Email(message = "Некоректний формат email")
-    private String email;
-
-    @NotBlank(message = "Пароль не може бути порожнім")
-    private String password;
+    private String billingEmail;
 }

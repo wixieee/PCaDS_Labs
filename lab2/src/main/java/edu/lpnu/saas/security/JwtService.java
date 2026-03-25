@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 @Slf4j
 @Service
-public class JWTService {
+public class JwtService {
 
     @Value("${app.jwt.secret}")
     private String secret;
@@ -43,13 +43,15 @@ public class JWTService {
                 .compact();
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        String email = extractEmail(token);
-        return email.equals(userDetails.getUsername());
-    }
-
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> {
+            Number userId = claims.get("userId", Number.class);
+            return userId != null ? userId.longValue() : null;
+        });
     }
 
     public Map<String, String> extractMemberships(String token) {
