@@ -9,8 +9,6 @@ import edu.lpnu.saas.model.enums.SubscriptionStatus;
 import edu.lpnu.saas.repository.ResourceLimitRepository;
 import edu.lpnu.saas.repository.SubscriptionRepository;
 import edu.lpnu.saas.util.mapper.SubscriptionMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +59,6 @@ public class SubscriptionService {
         ResourceLimit limit = resourceLimitRepository.findByOrganizationId(organizationId)
                 .orElseThrow(() -> new NotFoundException("Ліміти ресурсів не знайдено"));
 
-        limit.setMaxCampaigns(newPlan.getMaxCampaigns());
         limit.setMaxComments(newPlan.getMaxCommentsPerMonth());
         resourceLimitRepository.save(limit);
     }
@@ -100,13 +97,14 @@ public class SubscriptionService {
 
     public void handleFailedRenewal(String stripeSubscriptionId) {
         subscriptionRepository.findByStripeSubscriptionId(stripeSubscriptionId).ifPresent(subscription -> {
-            subscription.setStatus(SubscriptionStatus.EXPIRED);
+            subscription.setPlan(SubscriptionPlan.FREE);
+            subscription.setStatus(SubscriptionStatus.ACTIVE);
+
             subscriptionRepository.save(subscription);
 
             ResourceLimit limit = resourceLimitRepository.findByOrganizationId(subscription.getOrganizationId())
                     .orElseThrow(() -> new NotFoundException("Ліміти ресурсів не знайдено"));
 
-            limit.setMaxCampaigns(SubscriptionPlan.FREE.getMaxCampaigns());
             limit.setMaxComments(SubscriptionPlan.FREE.getMaxCommentsPerMonth());
             resourceLimitRepository.save(limit);
         });

@@ -1,5 +1,6 @@
 package edu.lpnu.saas.controller;
 
+import edu.lpnu.saas.aop.AuditAction;
 import edu.lpnu.saas.dto.request.InviteMemberRequest;
 import edu.lpnu.saas.dto.request.UpdateRoleRequest;
 import edu.lpnu.saas.security.JwtPrincipal;
@@ -10,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +30,8 @@ public class MembershipController {
     private final MembershipService membershipService;
 
     @PostMapping
+    @PreAuthorize("@orgSecurity.hasMinRole(#organizationId, 'ADMIN')")
+    @AuditAction(action = "INVITE_USER", orgId = "#organizationId")
     @Operation(summary = "Запросити користувача в організацію")
     public ResponseEntity<@NonNull Void> invite(
             @PathVariable Long organizationId,
@@ -40,6 +44,8 @@ public class MembershipController {
     }
 
     @PutMapping("/{userId}/role")
+    @PreAuthorize("@orgSecurity.hasMinRole(#organizationId, 'ADMIN')")
+    @AuditAction(action = "ROLE_UPDATE", orgId = "#organizationId")
     @Operation(summary = "Оновити роль користувача")
     public ResponseEntity<@NonNull Void> updateRole(
             @PathVariable Long organizationId,
@@ -53,6 +59,8 @@ public class MembershipController {
     }
 
     @DeleteMapping("/{userId}")
+    @PreAuthorize("@orgSecurity.hasMinRole(#organizationId, 'ADMIN')")
+    @AuditAction(action = "REMOVE_USER", orgId = "#organizationId")
     @Operation(summary = "Видалити користувача з організації")
     public ResponseEntity<@NonNull Void> remove(
             @PathVariable Long organizationId,

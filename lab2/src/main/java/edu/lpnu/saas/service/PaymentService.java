@@ -2,7 +2,7 @@ package edu.lpnu.saas.service;
 
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Subscription;
+import com.stripe.model.Invoice;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.SubscriptionUpdateParams;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -15,7 +15,6 @@ import edu.lpnu.saas.model.enums.SubscriptionPlan;
 import edu.lpnu.saas.repository.OrganizationRepository;
 import edu.lpnu.saas.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -75,7 +74,7 @@ public class PaymentService {
 
     public void cancelStripeSubscription(String stripeSubscriptionId) {
         try {
-            Subscription stripeSubscription = stripeClient.v1().subscriptions().retrieve(stripeSubscriptionId);
+            stripeClient.v1().subscriptions().retrieve(stripeSubscriptionId);
 
             SubscriptionUpdateParams params = SubscriptionUpdateParams.builder()
                             .setCancelAtPeriodEnd(true)
@@ -106,7 +105,11 @@ public class PaymentService {
         subscriptionService.activatePlan(orgId, plan, stripeSubscriptionId);
     }
 
-    public void handleInvoicePaid(com.stripe.model.Invoice invoice) {
+    public void handleInvoicePaid(Invoice invoice) {
+        if ("subscription_create".equals(invoice.getBillingReason())) {
+            return;
+        }
+
         String stripeSubscriptionId = null;
 
         if (invoice.getParent() != null
@@ -128,7 +131,7 @@ public class PaymentService {
         });
     }
 
-    public void handleInvoicePaymentFailed(com.stripe.model.Invoice invoice) {
+    public void handleInvoicePaymentFailed(Invoice invoice) {
         String stripeSubscriptionId = null;
 
         if (invoice.getParent() != null

@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -50,15 +49,13 @@ public class OrganizationService {
                 .plan(SubscriptionPlan.FREE)
                 .status(SubscriptionStatus.ACTIVE)
                 .startTime(Instant.now())
-                .endTime(Instant.now().plus(30, ChronoUnit.DAYS))
+                .endTime(null)
                 .build();
         subscriptionRepository.save(subscription);
 
         ResourceLimit limit = ResourceLimit.builder()
                 .organizationId(organization.getId())
-                .maxCampaigns(SubscriptionPlan.FREE.getMaxCampaigns())
                 .maxComments(SubscriptionPlan.FREE.getMaxCommentsPerMonth())
-                .usedCampaignsCount(0)
                 .usedCommentsCount(0)
                 .build();
         resourceLimitRepository.save(limit);

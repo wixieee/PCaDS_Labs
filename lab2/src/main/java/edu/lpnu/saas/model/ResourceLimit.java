@@ -14,10 +14,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public class ResourceLimit extends BaseEntity{
     private Long organizationId;
-    private Integer maxCampaigns;
     private Integer maxComments;
     @Builder.Default
     private Integer usedCommentsCount = 0;
-    @Builder.Default
-    private Integer usedCampaignsCount = 0;
 }

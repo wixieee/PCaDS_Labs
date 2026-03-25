@@ -4,8 +4,6 @@ import edu.lpnu.saas.model.ActivityLog;
 import java.util.List;
 
 public interface ActivityLogRepository {
-    ActivityLog save(ActivityLog activityLog);
+    ActivityLog save(ActivityLog log);
     List<ActivityLog> findByOrganizationId(Long organizationId);
-    List<ActivityLog> findByUserId(Long userId);
-    List<ActivityLog> findAll();
 }

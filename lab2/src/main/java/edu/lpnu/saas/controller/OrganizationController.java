@@ -1,5 +1,6 @@
 package edu.lpnu.saas.controller;
 
+import edu.lpnu.saas.aop.AuditAction;
 import edu.lpnu.saas.dto.request.OrganizationRequest;
 import edu.lpnu.saas.dto.response.OrganizationResponse;
 import edu.lpnu.saas.security.JwtPrincipal;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,12 +52,15 @@ public class OrganizationController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@orgSecurity.hasMinRole(#id, 'VIEWER')")
     @Operation(summary = "Отримати інформацію про конкретну організацію за її ID")
     public ResponseEntity<@NonNull OrganizationResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(organizationService.getOrganizationById(id));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("@orgSecurity.hasMinRole(#id, 'OWNER')")
+    @AuditAction(action = "ORGANIZATION_UPDATE", orgId = "#id")
     @Operation(summary = "Оновити назву та billing email організації")
     public ResponseEntity<@NonNull OrganizationResponse> update(
             @PathVariable Long id,
@@ -65,6 +70,8 @@ public class OrganizationController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("@orgSecurity.hasMinRole(#id, 'OWNER')")
+    @AuditAction(action = "ORGANIZATION_DELETE", orgId = "#id")
     @Operation(summary = "Видалити організацію")
     public ResponseEntity<@NonNull Void> delete(@PathVariable Long id) {
         organizationService.deleteOrganization(id);
