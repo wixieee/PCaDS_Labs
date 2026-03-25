@@ -11,4 +11,5 @@ public interface SubscriptionRepository {
     List<Subscription> findByOrganizationId(Long organizationId);
     Optional<Subscription> findByOrganizationIdAndStatus(Long organizationId, SubscriptionStatus status);
     void deleteById(Long id);
+    Optional<Subscription> findByStripeSubscriptionId(String stripeSubscriptionId);
 }

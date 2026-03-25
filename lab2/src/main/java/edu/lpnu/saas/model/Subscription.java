@@ -19,6 +19,7 @@ public class Subscription extends BaseEntity{
     private Long organizationId;
     private SubscriptionPlan plan;
     private SubscriptionStatus status;
+    private String stripeSubscriptionId;
     private Instant startTime;
     private Instant endTime;
 }

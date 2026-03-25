@@ -53,4 +53,13 @@ public class InMemorySubscriptionRepository implements SubscriptionRepository {
     public void deleteById(Long id) {
         store.remove(id);
     }
+
+    @Override
+    public Optional<Subscription> findByStripeSubscriptionId(String stripeSubscriptionId) {
+        if (stripeSubscriptionId == null) return Optional.empty();
+
+        return store.values().stream()
+                .filter(s -> stripeSubscriptionId.equals(s.getStripeSubscriptionId()))
+                .findFirst();
+    }
 }

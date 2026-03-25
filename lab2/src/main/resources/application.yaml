@@ -23,3 +23,7 @@ spring:
           auth: true
           starttls:
             enable: true
+
+stripe:
+  api-key: ${STRIPE_SECRET}
+  webhook-secret: ${WEBHOOK_SECRET}

@@ -9,5 +9,6 @@ public interface PaymentRepository {
     Optional<Payment> findById(Long id);
     List<Payment> findByOrganizationId(Long organizationId);
     List<Payment> findAll();
+    Optional<Payment> findByStripeSessionId(String sessionId);
     void deleteById(Long id);
 }
