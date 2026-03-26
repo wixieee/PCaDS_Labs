@@ -3,8 +3,6 @@ package edu.lpnu.saas.model.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.math.BigDecimal;
-
 @Getter
 @RequiredArgsConstructor
 public enum SubscriptionPlan {

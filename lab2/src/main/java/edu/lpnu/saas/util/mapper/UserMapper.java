@@ -1,6 +1,7 @@
 package edu.lpnu.saas.util.mapper;
 
 import edu.lpnu.saas.dto.request.RegistrationRequest;
+import edu.lpnu.saas.dto.response.UserResponse;
 import edu.lpnu.saas.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,4 +15,5 @@ import org.mapstruct.ReportingPolicy;
 public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     User toUser(RegistrationRequest request);
+    UserResponse toResponse(User user);
 }

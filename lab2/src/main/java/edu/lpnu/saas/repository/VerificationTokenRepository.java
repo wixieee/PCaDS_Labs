@@ -1,6 +1,7 @@
 package edu.lpnu.saas.repository;
 
 import edu.lpnu.saas.model.VerificationToken;
+
 import java.util.Optional;
 
 public interface VerificationTokenRepository {
