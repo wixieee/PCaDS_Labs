@@ -1,6 +1,7 @@
 package edu.lpnu.saas.service;
 
 import edu.lpnu.saas.dto.response.SubscriptionResponse;
+import edu.lpnu.saas.exception.types.BadRequestException;
 import edu.lpnu.saas.exception.types.NotFoundException;
 import edu.lpnu.saas.model.ResourceLimit;
 import edu.lpnu.saas.model.Subscription;
@@ -11,6 +12,7 @@ import edu.lpnu.saas.repository.SubscriptionRepository;
 import edu.lpnu.saas.util.mapper.SubscriptionMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -39,6 +41,7 @@ public class SubscriptionService {
         return subscriptionMapper.toSubscriptionResponse(subscription);
     }
 
+    @Transactional
     public void activatePlan(Long organizationId, SubscriptionPlan newPlan, String stripeSubscriptionId) {
         Subscription subscription = findActiveSubscription(organizationId);
 
@@ -63,6 +66,7 @@ public class SubscriptionService {
         resourceLimitRepository.save(limit);
     }
 
+    @Transactional
     public void renewSubscriptionByStripeId(String stripeSubscriptionId) {
         Subscription subscription = subscriptionRepository.findByStripeSubscriptionId(stripeSubscriptionId)
                 .orElseThrow(() -> new NotFoundException("Підписку з ID не знайдено"));
@@ -82,8 +86,13 @@ public class SubscriptionService {
         resourceLimitRepository.save(limit);
     }
 
+    @Transactional
     public SubscriptionResponse cancelSubscription(Long organizationId) {
         Subscription subscription = findActiveSubscription(organizationId);
+
+        if (subscription.getPlan() == SubscriptionPlan.FREE) {
+            throw new BadRequestException("Безкоштовний тариф не можна скасувати, оскільки це базовий план організації.");
+        }
 
         if (subscription.getStripeSubscriptionId() != null && !subscription.getStripeSubscriptionId().isEmpty()) {
             paymentService.cancelStripeSubscription(subscription.getStripeSubscriptionId());
@@ -95,6 +104,7 @@ public class SubscriptionService {
         return subscriptionMapper.toSubscriptionResponse(subscription);
     }
 
+    @Transactional
     public void handleFailedRenewal(String stripeSubscriptionId) {
         subscriptionRepository.findByStripeSubscriptionId(stripeSubscriptionId).ifPresent(subscription -> {
             subscription.setPlan(SubscriptionPlan.FREE);

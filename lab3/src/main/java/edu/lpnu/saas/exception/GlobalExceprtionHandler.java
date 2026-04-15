@@ -11,6 +11,10 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -83,6 +87,30 @@ public class GlobalExceprtionHandler {
         return buildErrorResponse(
                 HttpStatus.UNAUTHORIZED,
                 "Некоректний токен",
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler({
+            AuthorizationDeniedException.class,
+            AccessDeniedException.class
+    })
+    public ResponseEntity<@NonNull ErrorResponse> handleAccessDeniedException(HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                "У вас недостатньо прав для виконання цієї дії",
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler({
+            AuthenticationException.class,
+            BadCredentialsException.class
+    })
+    public ResponseEntity<@NonNull ErrorResponse> handleAuthenticationException(HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.UNAUTHORIZED,
+                "Невірний email або пароль",
                 request.getRequestURI()
         );
     }

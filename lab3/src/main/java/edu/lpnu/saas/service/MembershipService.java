@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -28,6 +29,7 @@ public class MembershipService {
     private final PasswordEncoder passwordEncoder;
     private final SmtpEmailService emailService;
 
+    @Transactional
     public void inviteMember(Long organizationId, InviteMemberRequest request, Long currentUserId) {
         Membership inviterMembership = membershipRepository.findByOrganizationIdAndUserId(organizationId, currentUserId)
                 .orElseThrow(() -> new AuthorizationException("Вас не знайдено в цій організації"));
@@ -78,6 +80,7 @@ public class MembershipService {
         }
     }
 
+    @Transactional
     public void updateMemberRole(Long organizationId, Long targetUserId, UpdateRoleRequest request, Long currentUserId) {
         Membership targetMembership = findByOrganizationAndUserId(organizationId, targetUserId);
         Membership updaterMembership = findByOrganizationAndUserId(organizationId, currentUserId);
@@ -94,6 +97,7 @@ public class MembershipService {
         membershipRepository.save(targetMembership);
     }
 
+    @Transactional
     public void removeMember(Long organizationId, Long targetUserId, Long currentUserId) {
         Membership targetMembership = findByOrganizationAndUserId(organizationId, targetUserId);
         Membership updaterMembership = findByOrganizationAndUserId(organizationId, currentUserId);

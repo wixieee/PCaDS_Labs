@@ -1,17 +1,21 @@
 package edu.lpnu.saas.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-@Data
+@Entity
+@Table(name = "activity_logs")
+@Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class ActivityLog extends BaseEntity{
+public class ActivityLog extends BaseEntity {
     private Long userId;
     private Long organizationId;
     private String action;

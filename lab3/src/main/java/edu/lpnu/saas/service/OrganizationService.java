@@ -10,13 +10,16 @@ import edu.lpnu.saas.model.Subscription;
 import edu.lpnu.saas.model.enums.Role;
 import edu.lpnu.saas.model.enums.SubscriptionPlan;
 import edu.lpnu.saas.model.enums.SubscriptionStatus;
+import edu.lpnu.saas.repository.ActivityLogRepository;
 import edu.lpnu.saas.repository.MembershipRepository;
 import edu.lpnu.saas.repository.OrganizationRepository;
+import edu.lpnu.saas.repository.PaymentRepository;
 import edu.lpnu.saas.repository.ResourceLimitRepository;
 import edu.lpnu.saas.repository.SubscriptionRepository;
 import edu.lpnu.saas.util.mapper.OrganizationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -31,8 +34,12 @@ public class OrganizationService {
     private final MembershipRepository membershipRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final ResourceLimitRepository resourceLimitRepository;
+    private final PaymentRepository paymentRepository;
+    private final ActivityLogRepository activityLogRepository;
+
     private final OrganizationMapper organizationMapper;
 
+    @Transactional
     public OrganizationResponse createOrganization(OrganizationRequest request, Long currentUserId) {
         Organization organization = organizationMapper.toOrganization(request);
         organization = organizationRepository.save(organization);
@@ -79,17 +86,24 @@ public class OrganizationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public OrganizationResponse updateOrganization(Long id, OrganizationRequest request) {
         Organization organization = findOrganizationById(id);
-
         organizationMapper.updateEntityFromDto(request, organization);
-
         organization = organizationRepository.save(organization);
         return organizationMapper.toOrganizationResponse(organization);
     }
 
+    @Transactional
     public void deleteOrganization(Long id) {
         Organization organization = findOrganizationById(id);
+
+        membershipRepository.deleteByOrganizationId(id);
+        subscriptionRepository.deleteByOrganizationId(id);
+        resourceLimitRepository.deleteByOrganizationId(id);
+        paymentRepository.deleteByOrganizationId(id);
+        activityLogRepository.deleteByOrganizationId(id);
+
         organizationRepository.deleteById(organization.getId());
     }
 

@@ -1,19 +1,28 @@
 package edu.lpnu.saas.model;
 
 import edu.lpnu.saas.model.enums.PaymentStatus;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-@Data
+@Entity
+@Table(name = "payments")
+@Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class Payment extends BaseEntity {
     private Long organizationId;
+
+    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
+
     private String stripeSessionId;
 }

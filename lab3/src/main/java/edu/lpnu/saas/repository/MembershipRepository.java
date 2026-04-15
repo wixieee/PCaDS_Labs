@@ -1,15 +1,13 @@
 package edu.lpnu.saas.repository;
 
 import edu.lpnu.saas.model.Membership;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface MembershipRepository {
-    Membership save(Membership membership);
-    Optional<Membership> findById(Long id);
+public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Membership> findByUserId(Long userId);
-    List<Membership> findByOrganizationId(Long organizationId);
+    void deleteByOrganizationId(Long organizationId);
     Optional<Membership> findByOrganizationIdAndUserId(Long organizationId, Long userId);
-    void deleteById(Long id);
 }

@@ -8,6 +8,7 @@ import edu.lpnu.saas.repository.ResourceLimitRepository;
 import edu.lpnu.saas.util.mapper.ResourceLimitMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +17,7 @@ public class ResourceLimitService {
     private final ResourceLimitRepository resourceLimitRepository;
     private final ResourceLimitMapper mapper;
 
+    @Transactional
     public void consumeComment(Long organizationId) {
         ResourceLimit limit = resourceLimitRepository.findByOrganizationId(organizationId)
                 .orElseThrow(() -> new NotFoundException("Ліміти для організації не знайдено"));

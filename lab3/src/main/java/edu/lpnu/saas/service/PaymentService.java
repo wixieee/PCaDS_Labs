@@ -17,6 +17,7 @@ import edu.lpnu.saas.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class PaymentService {
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
+    @Transactional
     public String createCheckoutSession(Long organizationId, SubscriptionPlan plan) {
         Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new NotFoundException("Організацію не знайдено"));
@@ -87,6 +89,7 @@ public class PaymentService {
         }
     }
 
+    @Transactional
     public void handleCheckoutSessionCompleted(Session session) {
         Payment payment = paymentRepository.findByStripeSessionId(session.getId())
                 .orElseThrow(() -> new NotFoundException("Платіж не знайдено"));
@@ -124,6 +127,7 @@ public class PaymentService {
         }
     }
 
+    @Transactional
     public void handleCheckoutSessionExpired(Session session) {
         paymentRepository.findByStripeSessionId(session.getId()).ifPresent(payment -> {
             payment.setStatus(PaymentStatus.FAILED);

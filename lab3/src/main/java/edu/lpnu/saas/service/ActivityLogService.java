@@ -6,12 +6,12 @@ import edu.lpnu.saas.repository.ActivityLogRepository;
 import edu.lpnu.saas.util.mapper.ActivityLogMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,10 +33,11 @@ public class ActivityLogService {
         activityLogRepository.save(activityLog);
     }
 
-    public List<ActivityLogResponse> getOrganizationLogs(Long organizationId) {
-        return activityLogRepository.findByOrganizationId(organizationId).stream()
-                .sorted(Comparator.comparing(ActivityLog::getCreatedAt).reversed())
-                .map(mapper::toResponse)
-                .collect(Collectors.toList());
+    public Page<ActivityLogResponse> getOrganizationLogs(Long organizationId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<ActivityLog> logPage = activityLogRepository.findByOrganizationId(organizationId, pageable);
+
+        return logPage.map(mapper::toResponse);
     }
 }

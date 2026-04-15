@@ -25,6 +25,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -56,6 +57,7 @@ public class AuthService {
         return generateAuthResponse(user);
     }
 
+    @Transactional
     public AuthResponse register(RegistrationRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new AlreadyExistsException("Користувач уже існує");
@@ -67,6 +69,7 @@ public class AuthService {
         return generateAuthResponse(user);
     }
 
+    @Transactional
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         RefreshToken refreshToken = refreshTokenService.findByTokenOrThrow(request.getToken());
         refreshTokenService.verifyExpiration(refreshToken);
@@ -92,6 +95,7 @@ public class AuthService {
         });
     }
 
+    @Transactional
     public void processResetPassword(ResetPasswordRequest request) {
         VerificationToken token = tokenRepository.findByToken(request.getToken())
                 .orElseThrow(() -> new InvalidTokenException("Недійсний токен"));
