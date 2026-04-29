@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="uk-UA">
+<head>
+    <meta charset="UTF-8">
+    <title>Запрошення в організацію</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+
+<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <h2 style="color: #333333; text-align: center;">Запрошення до команди</h2>
+
+    <p style="color: #555555; font-size: 16px; line-height: 1.5;">Привіт!</p>
+    <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+        Вас запросили приєднатися до робочого простору <strong><span th:text="${orgName}">Назва Організації</span></strong>.
+        Ми вже створили для вас обліковий запис, щоб ви могли одразу розпочати роботу.
+    </p>
+
+    <div style="background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 15px 20px; margin: 25px 0; border-radius: 4px;">
+        <p style="color: #333333; font-size: 16px; margin: 0 0 10px 0;"><strong>Ваші дані для входу:</strong></p>
+        <p style="color: #555555; font-size: 16px; margin: 5px 0;">Логін (Email): <strong th:text="${email}">user@example.com</strong></p>
+        <p style="color: #555555; font-size: 16px; margin: 5px 0;">Тимчасовий пароль: <strong th:text="${password}" style="background-color: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: monospace; letter-spacing: 1px;">password123</strong></p>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a th:href="${loginLink}" style="background-color: #007bff; color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: inline-block;">
+            Увійти в систему
+        </a>
+    </div>
+
+    <p style="color: #999999; font-size: 14px; margin-top: 30px; border-top: 1px solid #eeeeee; padding-top: 20px; text-align: center;">
+        З міркувань безпеки, будь ласка, змініть цей тимчасовий пароль у налаштуваннях вашого профілю після першого входу.
+    </p>
+</div>
+
+</body>
+</html>
