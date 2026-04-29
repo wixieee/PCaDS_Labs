@@ -26,6 +26,8 @@
 
 	<modules>
 		<module>core-monolith</module>
+		<module>discovery-server</module>
+		<module>discovery-server</module>
 	</modules>
 
 	<dependencyManagement>
