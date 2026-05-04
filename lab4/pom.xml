@@ -28,6 +28,8 @@
 		<module>core-monolith</module>
 		<module>discovery-server</module>
 		<module>api-gateway</module>
+		<module>iam-service</module>
+		<module>common</module>
 	</modules>
 
 	<dependencyManagement>
