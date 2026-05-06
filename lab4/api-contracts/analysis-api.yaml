@@ -53,8 +53,14 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/AnalyzeCommentResponse"
-
+security:
+  - bearerAuth: []
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     ResourceLimitResponse:
       type: object

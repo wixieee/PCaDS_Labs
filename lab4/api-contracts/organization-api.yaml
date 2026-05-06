@@ -99,8 +99,14 @@ paths:
       responses:
         "204":
           description: No Content
-
+security:
+  - bearerAuth: []
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     OrganizationRequest:
       type: object

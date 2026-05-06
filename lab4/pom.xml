@@ -22,10 +22,10 @@
 		<stripe.version>31.4.1</stripe.version>
 		<springdoc.version>3.0.2</springdoc.version>
 		<openapi-generator.version>7.12.0</openapi-generator.version>
+		<jackson.nullable.version>0.2.6</jackson.nullable.version>
 	</properties>
 
 	<modules>
-		<module>core-monolith</module>
 		<module>discovery-server</module>
 		<module>api-gateway</module>
 		<module>iam-service</module>
@@ -76,6 +76,11 @@
 				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 				<version>${springdoc.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.openapitools</groupId>
+				<artifactId>jackson-databind-nullable</artifactId>
+				<version>${jackson.nullable.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -86,6 +91,16 @@
 					<groupId>org.openapitools</groupId>
 					<artifactId>openapi-generator-maven-plugin</artifactId>
 					<version>${openapi-generator.version}</version>
+					<configuration>
+						<generatorName>spring</generatorName>
+						<configOptions>
+							<interfaceOnly>true</interfaceOnly>
+							<useSpringBoot3>true</useSpringBoot3>
+							<skipDefaultInterface>true</skipDefaultInterface>
+							<useBeanValidation>true</useBeanValidation>
+							<useTags>true</useTags>
+						</configOptions>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -112,5 +127,4 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-
 </project>

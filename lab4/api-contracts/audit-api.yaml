@@ -40,7 +40,14 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/PageActivityLogResponse"
+security:
+  - bearerAuth: []
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     ActivityLogResponse:
       type: object

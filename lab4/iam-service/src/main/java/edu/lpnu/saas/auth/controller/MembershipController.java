@@ -1,6 +1,6 @@
 package edu.lpnu.saas.auth.controller;
 
-import edu.lpnu.saas.auth.api.OrganizationsApi;
+import edu.lpnu.saas.auth.api.MembershipsApi;
 import edu.lpnu.saas.auth.dto.InviteMemberRequest;
 import edu.lpnu.saas.auth.dto.UpdateRoleRequest;
 import edu.lpnu.saas.auth.service.MembershipService;
@@ -14,7 +14,7 @@ import static edu.lpnu.saas.common.security.JwtPrincipal.getCurrentUserId;
 
 @RestController
 @RequiredArgsConstructor
-public class MembershipController implements OrganizationsApi {
+public class MembershipController implements MembershipsApi {
 
     private final MembershipService membershipService;
 

@@ -1,6 +1,6 @@
 package edu.lpnu.saas.auth.controller;
 
-import edu.lpnu.saas.auth.api.AuthApi;
+import edu.lpnu.saas.auth.api.AuthenticationApi;
 import edu.lpnu.saas.auth.dto.AuthResponse;
 import edu.lpnu.saas.auth.dto.ForgotPasswordRequest;
 import edu.lpnu.saas.auth.dto.LoginRequest;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class AuthController implements AuthApi {
+public class AuthController implements AuthenticationApi {
 
     private final AuthService authService;
 

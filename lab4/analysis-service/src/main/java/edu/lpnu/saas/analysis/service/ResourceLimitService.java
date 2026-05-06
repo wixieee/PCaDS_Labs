@@ -2,7 +2,6 @@ package edu.lpnu.saas.analysis.service;
 
 import edu.lpnu.saas.analysis.dto.ResourceLimitResponse;
 import edu.lpnu.saas.analysis.exception.types.LimitExceededException;
-import edu.lpnu.saas.common.exception.types.NotFoundException;
 import edu.lpnu.saas.analysis.model.ResourceLimit;
 import edu.lpnu.saas.analysis.repository.ResourceLimitRepository;
 import edu.lpnu.saas.analysis.util.mapper.ResourceLimitMapper;
@@ -10,6 +9,7 @@ import edu.lpnu.saas.common.dto.OrganizationCreatedEvent;
 import edu.lpnu.saas.common.dto.OrganizationDeletedEvent;
 import edu.lpnu.saas.common.dto.SubscriptionPlanChangedEvent;
 import edu.lpnu.saas.common.dto.SubscriptionRenewedEvent;
+import edu.lpnu.saas.common.exception.types.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

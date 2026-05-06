@@ -1,6 +1,6 @@
 package edu.lpnu.saas.audit.controller;
 
-import edu.lpnu.saas.audit.api.OrganizationsApi;
+import edu.lpnu.saas.audit.api.AuditLogsApi;
 import edu.lpnu.saas.audit.dto.PageActivityLogResponse;
 import edu.lpnu.saas.audit.service.ActivityLogService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class ActivityLogController implements OrganizationsApi {
+public class ActivityLogController implements AuditLogsApi {
 
     private final ActivityLogService activityLogService;
 

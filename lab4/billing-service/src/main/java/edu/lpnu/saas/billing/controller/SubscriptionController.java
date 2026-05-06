@@ -1,6 +1,6 @@
 package edu.lpnu.saas.billing.controller;
 
-import edu.lpnu.saas.billing.api.OrganizationsApi;
+import edu.lpnu.saas.billing.api.SubscriptionsApi;
 import edu.lpnu.saas.billing.dto.ChangePlanRequest;
 import edu.lpnu.saas.billing.dto.SubscriptionResponse;
 import edu.lpnu.saas.billing.model.enums.SubscriptionPlan;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-public class SubscriptionController implements OrganizationsApi {
+public class SubscriptionController implements SubscriptionsApi {
 
     private final SubscriptionService subscriptionService;
     private final PaymentService paymentService;

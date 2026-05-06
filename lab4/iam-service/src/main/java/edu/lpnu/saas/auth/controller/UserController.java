@@ -1,6 +1,6 @@
 package edu.lpnu.saas.auth.controller;
 
-import edu.lpnu.saas.auth.api.UsersApi;
+import edu.lpnu.saas.auth.api.UserProfileApi;
 import edu.lpnu.saas.auth.dto.ChangePasswordRequest;
 import edu.lpnu.saas.auth.dto.UpdateProfileRequest;
 import edu.lpnu.saas.auth.dto.UserResponse;
@@ -13,7 +13,7 @@ import static edu.lpnu.saas.common.security.JwtPrincipal.getCurrentUserId;
 
 @RestController
 @RequiredArgsConstructor
-public class UserController implements UsersApi {
+public class UserController implements UserProfileApi {
 
     private final UserService userService;
 

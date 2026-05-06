@@ -74,8 +74,14 @@ paths:
             "application/json":
               schema:
                 $ref: "#/components/schemas/SubscriptionResponse"
-
+security:
+  - bearerAuth: []
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     ChangePlanRequest:
       type: object

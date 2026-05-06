@@ -246,8 +246,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserOrganizationsResponse"
-
+security:
+  - bearerAuth: []
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     RegistrationRequest:
       type: object
