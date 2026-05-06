@@ -65,11 +65,11 @@ spring:
               filters:
                 - StripPrefix=1
 
-            - id: core-monolith-route
-              uri: lb://core-monolith
-              order: 2
+            - id: analysis-service-route
+              uri: lb://analysis-service
+              order: 1
               predicates:
-                - Path=/api/organizations/**
+                - Path=/api/organizations/*/limits, /api/organizations/*/analysis/**
               filters:
                 - StripPrefix=1
 

@@ -1,0 +1,91 @@
+openapi: 3.0.3
+info:
+  title: Analysis Service API
+  version: v0
+servers:
+  - url: http://localhost:8080/api
+    description: API Gateway url
+paths:
+  /organizations/{organizationId}/limits:
+    get:
+      tags:
+        - Resource Limits
+      summary: Отримати поточні ліміти та їх використання для організації
+      operationId: getLimits
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/ResourceLimitResponse"
+
+  /organizations/{organizationId}/analysis/comment:
+    post:
+      tags:
+        - Semantic Analysis
+      summary: Проаналізувати семантику тексту коментаря
+      operationId: analyze
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeCommentRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AnalyzeCommentResponse"
+
+components:
+  schemas:
+    ResourceLimitResponse:
+      type: object
+      properties:
+        organizationId:
+          type: integer
+          format: int64
+        maxComments:
+          type: integer
+          format: int32
+        usedCommentsCount:
+          type: integer
+          format: int32
+
+    AnalyzeCommentRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          maxLength: 2000
+
+    AnalyzeCommentResponse:
+      type: object
+      properties:
+        originalText:
+          type: string
+        sentiment:
+          type: string
+        confidenceScore:
+          type: number
+          format: double
+        spam:
+          type: boolean
