@@ -1,0 +1,108 @@
+openapi: 3.0.3
+info:
+  title: Billing Service API
+  version: v0
+servers:
+  - url: http://localhost:8080/api
+    description: API Gateway url
+paths:
+  /organizations/{organizationId}/subscription:
+    get:
+      tags:
+        - Subscriptions
+      summary: Отримати поточну підписку організації
+      operationId: getCurrent
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+  /organizations/{organizationId}/subscription/checkout:
+    post:
+      tags:
+        - Subscriptions
+      summary: Отримати посилання на оплату для переходу на новий тариф
+      operationId: createCheckout
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePlanRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+  /organizations/{organizationId}/subscription/cancel:
+    post:
+      tags:
+        - Subscriptions
+      summary: Скасувати поточну підписку
+      operationId: cancel
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+
+components:
+  schemas:
+    ChangePlanRequest:
+      type: object
+      properties:
+        plan:
+          type: string
+          enum: [FREE, STARTUP, PRO]
+      required:
+        - plan
+    SubscriptionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        organizationId:
+          type: integer
+          format: int64
+        plan:
+          type: string
+          enum: [FREE, STARTUP, PRO]
+        status:
+          type: string
+          enum: [ACTIVE, CANCELED]
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time

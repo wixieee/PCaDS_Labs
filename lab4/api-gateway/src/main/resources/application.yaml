@@ -49,6 +49,22 @@ spring:
               filters:
                 - StripPrefix=1
 
+            - id: billing-service-route
+              uri: lb://billing-service
+              order: 1
+              predicates:
+                - Path=/api/organizations/*/subscription/**
+              filters:
+                - StripPrefix=1
+
+            - id: stripe-webhook-route
+              uri: lb://billing-service
+              order: 1
+              predicates:
+                - Path=/api/webhooks/stripe
+              filters:
+                - StripPrefix=1
+
             - id: core-monolith-route
               uri: lb://core-monolith
               order: 2

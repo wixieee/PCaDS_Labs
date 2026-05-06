@@ -22,4 +22,12 @@ public class JwtPrincipal {
         }
         throw new IllegalStateException("Спроба отримати ID користувача без активної авторизації");
     }
+
+    public static String getCurrentUserEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof JwtPrincipal principal) {
+            return principal.getEmail();
+        }
+        throw new IllegalStateException("Спроба отримати Email користувача без активної авторизації");
+    }
 }

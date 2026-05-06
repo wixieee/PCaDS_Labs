@@ -33,6 +33,7 @@
 		<module>audit-service</module>
 		<module>notification-service</module>
 		<module>organization-service</module>
+		<module>billing-service</module>
 	</modules>
 
 	<dependencyManagement>
