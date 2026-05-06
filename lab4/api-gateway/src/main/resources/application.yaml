@@ -41,6 +41,14 @@ spring:
               filters:
                 - StripPrefix=1
 
+            - id: organization-service-route
+              uri: lb://organization-service
+              order: 1
+              predicates:
+                - Path=/api/organizations, /api/organizations/{id}
+              filters:
+                - StripPrefix=1
+
             - id: core-monolith-route
               uri: lb://core-monolith
               order: 2
@@ -52,4 +60,4 @@ spring:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://${EUREKA_USERNAME}:${EUREKA_PASSWORD}@localhost:8761/eureka/
+      defaultZone: http://${EUREKA_USERNAME:admin}:${EUREKA_PASSWORD:admin}@localhost:8761/eureka/

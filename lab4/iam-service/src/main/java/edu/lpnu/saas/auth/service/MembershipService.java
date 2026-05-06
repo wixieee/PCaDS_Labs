@@ -3,10 +3,12 @@ package edu.lpnu.saas.auth.service;
 import edu.lpnu.saas.auth.dto.InternalMembershipRequest;
 import edu.lpnu.saas.auth.dto.InviteMemberRequest;
 import edu.lpnu.saas.auth.dto.UpdateRoleRequest;
+import edu.lpnu.saas.auth.dto.UserOrganizationsResponse;
 import edu.lpnu.saas.auth.model.Membership;
 import edu.lpnu.saas.auth.model.User;
 import edu.lpnu.saas.auth.repository.MembershipRepository;
 import edu.lpnu.saas.auth.repository.UserRepository;
+import edu.lpnu.saas.common.dto.OrganizationDeletedEvent;
 import edu.lpnu.saas.common.dto.UserInvitedEvent;
 import edu.lpnu.saas.common.exception.types.AlreadyExistsException;
 import edu.lpnu.saas.common.exception.types.GeneralWebException;
@@ -15,12 +17,14 @@ import edu.lpnu.saas.common.model.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -109,6 +113,23 @@ public class MembershipService {
     public void createInternalMembership(InternalMembershipRequest request) {
         Role requestedRole = Role.valueOf(request.getRole().name());
         createMembershipRecord(request.getUserId(), request.getOrganizationId(), requestedRole);
+    }
+
+    public UserOrganizationsResponse getUserOrganizationIds(Long userId) {
+        List<Long> orgIds = membershipRepository.findByUserId(userId).stream()
+                .map(Membership::getOrganizationId)
+                .toList();
+
+        UserOrganizationsResponse response = new UserOrganizationsResponse();
+        response.setOrganizationIds(orgIds);
+        return response;
+    }
+
+    @Transactional
+    @RabbitListener(queues = "iam.organization.deleted.queue")
+    public void handleOrganizationDeleted(OrganizationDeletedEvent event) {
+        log.info("Отримано подію видалення організації {}. Видаляємо всі прив'язані memberships...", event.getOrganizationId());
+        membershipRepository.deleteByOrganizationId(event.getOrganizationId());
     }
 
     private void createMembershipRecord(Long userId, Long orgId, Role role) {

@@ -32,6 +32,7 @@
 		<module>common</module>
 		<module>audit-service</module>
 		<module>notification-service</module>
+		<module>organization-service</module>
 	</modules>
 
 	<dependencyManagement>

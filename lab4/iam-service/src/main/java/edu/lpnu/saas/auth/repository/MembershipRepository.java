@@ -8,5 +8,5 @@ import java.util.Optional;
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Membership> findByUserId(Long userId);
     Optional<Membership> findByOrganizationIdAndUserId(Long organizationId, Long userId);
-    void deleteByOrganizationIdAndUserId(Long organizationId, Long userId);
+    void deleteByOrganizationId(Long organizationId);
 }

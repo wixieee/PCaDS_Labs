@@ -2,6 +2,7 @@ package edu.lpnu.saas.auth.controller;
 
 import edu.lpnu.saas.auth.api.InternalApi;
 import edu.lpnu.saas.auth.dto.InternalMembershipRequest;
+import edu.lpnu.saas.auth.dto.UserOrganizationsResponse;
 import edu.lpnu.saas.auth.service.MembershipService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,5 +19,10 @@ public class InternalController implements InternalApi {
     public ResponseEntity<Void> createInternalMembership(InternalMembershipRequest request) {
         membershipService.createInternalMembership(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Override
+    public ResponseEntity<UserOrganizationsResponse> getUserOrganizationIds(Long userId) {
+        return ResponseEntity.ok(membershipService.getUserOrganizationIds(userId));
     }
 }

@@ -226,6 +226,26 @@ paths:
       responses:
         "201":
           description: Created
+  /internal/users/{userId}/organizations:
+    get:
+      tags:
+        - Internal
+      summary: Отримати список ID організацій користувача
+      operationId: getUserOrganizationIds
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOrganizationsResponse"
 
 components:
   schemas:
@@ -298,6 +318,15 @@ components:
         userId: { type: integer, format: int64 }
         organizationId: { type: integer, format: int64 }
         role: { $ref: "#/components/schemas/Role" }
+
+    UserOrganizationsResponse:
+      type: object
+      properties:
+        organizationIds:
+          type: array
+          items:
+            type: integer
+            format: int64
 
     AuthResponse:
       type: object
