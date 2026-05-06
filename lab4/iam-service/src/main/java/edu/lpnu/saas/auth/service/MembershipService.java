@@ -7,6 +7,7 @@ import edu.lpnu.saas.auth.model.Membership;
 import edu.lpnu.saas.auth.model.User;
 import edu.lpnu.saas.auth.repository.MembershipRepository;
 import edu.lpnu.saas.auth.repository.UserRepository;
+import edu.lpnu.saas.common.dto.UserInvitedEvent;
 import edu.lpnu.saas.common.exception.types.AlreadyExistsException;
 import edu.lpnu.saas.common.exception.types.GeneralWebException;
 import edu.lpnu.saas.common.exception.types.NotFoundException;
@@ -14,6 +15,7 @@ import edu.lpnu.saas.common.model.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class MembershipService {
     private final MembershipRepository membershipRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RabbitTemplate rabbitTemplate;
 
     @Transactional
     public void inviteMember(Long organizationId, InviteMemberRequest request, Long currentUserId) {
@@ -62,8 +65,15 @@ public class MembershipService {
 
             createMembershipRecord(newUser.getId(), organizationId, requestedRole);
 
-            // TODO: Замінити на відправку події в RabbitMQ
-            log.info("Створено нового користувача {}. Пароль: {}.", newUser.getEmail(), randomPassword);
+            String orgName = "Організація #" + organizationId;
+            UserInvitedEvent event = UserInvitedEvent.builder()
+                    .email(newUser.getEmail())
+                    .orgName(orgName)
+                    .password(randomPassword)
+                    .build();
+
+            rabbitTemplate.convertAndSend("notification.exchange", "notification.email.invite", event);
+            log.info("Створено нового користувача та відправлено подію запрошення: {}", newUser.getEmail());
         }
     }
 

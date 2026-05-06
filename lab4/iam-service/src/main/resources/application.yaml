@@ -16,8 +16,6 @@ spring:
   h2:
     console:
       enabled: true
-  autoconfigure:
-    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
 
 app:
   jwt:

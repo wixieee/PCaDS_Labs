@@ -1,8 +1,8 @@
 package edu.lpnu.saas.audit.controller;
 
+import edu.lpnu.saas.audit.api.OrganizationsApi;
 import edu.lpnu.saas.audit.dto.PageActivityLogResponse;
 import edu.lpnu.saas.audit.service.ActivityLogService;
-import edu.lpnu.saas.audit.api.OrganizationsApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

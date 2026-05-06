@@ -15,11 +15,13 @@ import edu.lpnu.saas.auth.repository.MembershipRepository;
 import edu.lpnu.saas.auth.repository.UserRepository;
 import edu.lpnu.saas.auth.repository.VerificationTokenRepository;
 import edu.lpnu.saas.auth.util.mapper.UserMapper;
+import edu.lpnu.saas.common.dto.PasswordResetEvent;
 import edu.lpnu.saas.common.exception.types.AlreadyExistsException;
 import edu.lpnu.saas.common.exception.types.NotFoundException;
 import edu.lpnu.saas.common.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final UserMapper userMapper;
     private final JwtService jwtService;
+    private final RabbitTemplate rabbitTemplate;
 
     public AuthResponse login(LoginRequest request) {
         User user = findUserByEmail(request.getEmail());
@@ -86,8 +89,13 @@ public class AuthService {
                     .build();
 
             tokenRepository.save(token);
-            // TODO: Замінити на відправку події в RabbitMQ
-            log.info("Створено токен скидання пароля для {}: {}", user.getEmail(), tokenString);
+            PasswordResetEvent event = PasswordResetEvent.builder()
+                    .email(user.getEmail())
+                    .token(tokenString)
+                    .build();
+
+            rabbitTemplate.convertAndSend("notification.exchange", "notification.email.reset", event);
+            log.info("Відправлено подію скидання пароля для: {}", user.getEmail());
         });
     }
 

@@ -1,7 +1,12 @@
 package edu.lpnu.saas.auth.controller;
 
 import edu.lpnu.saas.auth.api.AuthApi;
-import edu.lpnu.saas.auth.dto.*;
+import edu.lpnu.saas.auth.dto.AuthResponse;
+import edu.lpnu.saas.auth.dto.ForgotPasswordRequest;
+import edu.lpnu.saas.auth.dto.LoginRequest;
+import edu.lpnu.saas.auth.dto.RefreshTokenRequest;
+import edu.lpnu.saas.auth.dto.RegistrationRequest;
+import edu.lpnu.saas.auth.dto.ResetPasswordRequest;
 import edu.lpnu.saas.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
