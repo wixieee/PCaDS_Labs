@@ -25,6 +25,12 @@ spring:
     openfeign:
       circuitbreaker:
         enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
 
 resilience4j:
   circuitbreaker:

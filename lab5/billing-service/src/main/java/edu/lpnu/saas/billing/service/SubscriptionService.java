@@ -17,6 +17,10 @@ import edu.lpnu.saas.common.exception.types.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,17 +35,20 @@ public class SubscriptionService {
     private final SubscriptionMapper subscriptionMapper;
     private final PaymentService paymentService;
     private final RabbitTemplate rabbitTemplate;
+    private final CacheManager cacheManager;
 
     public SubscriptionService(
             SubscriptionRepository subscriptionRepository,
             SubscriptionMapper subscriptionMapper,
             @Lazy PaymentService paymentService,
-            RabbitTemplate rabbitTemplate
+            RabbitTemplate rabbitTemplate,
+            CacheManager cacheManager
     ) {
         this.subscriptionRepository = subscriptionRepository;
         this.subscriptionMapper = subscriptionMapper;
         this.paymentService = paymentService;
         this.rabbitTemplate = rabbitTemplate;
+        this.cacheManager = cacheManager;
     }
 
     @Transactional
@@ -62,6 +69,7 @@ public class SubscriptionService {
 
     @Transactional
     @RabbitListener(queues = "billing.organization.deleted.queue")
+    @CacheEvict(value = "subscriptions", key = "#event.organizationId")
     public void handleOrganizationDeleted(OrganizationDeletedEvent event) {
         log.info("Отримано подію видалення організації {}. Скасовуємо підписку в Stripe і чистимо БД.", event.getOrganizationId());
 
@@ -81,12 +89,14 @@ public class SubscriptionService {
         paymentService.deletePaymentsByOrganizationId(event.getOrganizationId());
     }
 
+    @Cacheable(value = "subscriptions", key = "#organizationId")
     public SubscriptionResponse getCurrentSubscription(Long organizationId) {
         Subscription subscription = findActiveSubscription(organizationId);
         return subscriptionMapper.toSubscriptionResponse(subscription);
     }
 
     @Transactional
+    @CacheEvict(value = "subscriptions", key = "#organizationId") // Збиваємо кеш (оскільки метод повертає void, @CachePut не підходить)
     public void activatePlan(Long organizationId, SubscriptionPlan newPlan, String stripeSubscriptionId) {
         Subscription subscription = findActiveSubscription(organizationId);
 
@@ -121,10 +131,15 @@ public class SubscriptionService {
         subscription.setStatus(SubscriptionStatus.ACTIVE);
         subscriptionRepository.save(subscription);
 
+        if (cacheManager.getCache("subscriptions") != null) {
+            cacheManager.getCache("subscriptions").evict(subscription.getOrganizationId());
+        }
+
         publishRenewedEvent(subscription);
     }
 
     @Transactional
+    @CachePut(value = "subscriptions", key = "#organizationId")
     public SubscriptionResponse cancelSubscription(Long organizationId) {
         Subscription subscription = findActiveSubscription(organizationId);
 
@@ -153,9 +168,13 @@ public class SubscriptionService {
             subscription.setPlan(SubscriptionPlan.FREE);
             subscription.setStatus(SubscriptionStatus.ACTIVE);
             subscription.setStripeSubscriptionId(null);
-            subscription.setEndTime(Instant.now().plus(30, ChronoUnit.DAYS)); // Починається новий FREE цикл
+            subscription.setEndTime(Instant.now().plus(30, ChronoUnit.DAYS));
 
             subscriptionRepository.save(subscription);
+
+            if (cacheManager.getCache("subscriptions") != null) {
+                cacheManager.getCache("subscriptions").evict(subscription.getOrganizationId());
+            }
 
             publishPlanChangedEvent(subscription);
             log.warn("Не вдалося продовжити підписку {}. Організацію переведено на FREE.", stripeSubscriptionId);

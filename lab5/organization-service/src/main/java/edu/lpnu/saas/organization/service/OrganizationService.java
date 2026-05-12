@@ -14,6 +14,9 @@ import edu.lpnu.saas.organization.util.mapper.OrganizationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -33,6 +36,7 @@ public class OrganizationService {
     private final RabbitTemplate rabbitTemplate;
 
     @Transactional
+    @CachePut(value = "organizations", key = "#result.id")
     public OrganizationResponse createOrganization(OrganizationRequest request, Long currentUserId) {
         Organization organization = organizationMapper.toOrganization(request);
         organization = organizationRepository.save(organization);
@@ -56,6 +60,7 @@ public class OrganizationService {
         return organizationMapper.toOrganizationResponse(organization);
     }
 
+    @Cacheable(value = "organizations", key = "#id")
     public OrganizationResponse getOrganizationById(Long id) {
         Organization organization = findOrganizationById(id);
         return organizationMapper.toOrganizationResponse(organization);
@@ -81,6 +86,7 @@ public class OrganizationService {
     }
 
     @Transactional
+    @CachePut(value = "organizations", key = "#id")
     public OrganizationResponse updateOrganization(Long id, OrganizationRequest request) {
         Organization organization = findOrganizationById(id);
         organizationMapper.updateEntityFromDto(request, organization);
@@ -89,6 +95,7 @@ public class OrganizationService {
     }
 
     @Transactional
+    @CacheEvict(value = "organizations", key = "#id")
     public void deleteOrganization(Long id) {
         Organization organization = findOrganizationById(id);
 

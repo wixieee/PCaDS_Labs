@@ -19,6 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,7 @@ public class MembershipService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RabbitTemplate rabbitTemplate;
+    private final CacheManager cacheManager;
 
     @Transactional
     public void inviteMember(Long organizationId, InviteMemberRequest request, Long currentUserId) {
@@ -56,6 +60,10 @@ public class MembershipService {
                 throw new AlreadyExistsException("Користувач вже є учасником цієї організації");
             }
             createMembershipRecord(existingUser.getId(), organizationId, requestedRole);
+
+            if (cacheManager.getCache("user_orgs") != null) {
+                cacheManager.getCache("user_orgs").evict(existingUser.getId());
+            }
         } else {
             String randomPassword = RandomStringUtils.secure().nextAlphanumeric(10);
             User newUser = User.builder()
@@ -98,6 +106,7 @@ public class MembershipService {
     }
 
     @Transactional
+    @CacheEvict(value = "user_orgs", key = "#targetUserId")
     public void removeMember(Long organizationId, Long targetUserId, Long currentUserId) {
         Membership targetMembership = findByOrganizationAndUserId(organizationId, targetUserId);
         Membership updaterMembership = findByOrganizationAndUserId(organizationId, currentUserId);
@@ -110,11 +119,13 @@ public class MembershipService {
     }
 
     @Transactional
+    @CacheEvict(value = "user_orgs", key = "#request.userId")
     public void createInternalMembership(InternalMembershipRequest request) {
         Role requestedRole = Role.valueOf(request.getRole().name());
         createMembershipRecord(request.getUserId(), request.getOrganizationId(), requestedRole);
     }
 
+    @Cacheable(value = "user_orgs", key = "#userId")
     public UserOrganizationsResponse getUserOrganizationIds(Long userId) {
         List<Long> orgIds = membershipRepository.findByUserId(userId).stream()
                 .map(Membership::getOrganizationId)
@@ -127,6 +138,7 @@ public class MembershipService {
 
     @Transactional
     @RabbitListener(queues = "iam.organization.deleted.queue")
+    @CacheEvict(value = "user_orgs", allEntries = true)
     public void handleOrganizationDeleted(OrganizationDeletedEvent event) {
         log.info("Отримано подію видалення організації {}. Видаляємо всі прив'язані memberships...", event.getOrganizationId());
         membershipRepository.deleteByOrganizationId(event.getOrganizationId());

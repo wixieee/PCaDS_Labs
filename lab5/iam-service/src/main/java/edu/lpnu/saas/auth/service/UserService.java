@@ -10,6 +10,8 @@ import edu.lpnu.saas.common.exception.types.AlreadyExistsException;
 import edu.lpnu.saas.common.exception.types.BadRequestException;
 import edu.lpnu.saas.common.exception.types.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
+    @Cacheable(value = "users", key = "#userId")
     public UserResponse getProfile(Long userId) {
         User user = findUserById(userId);
         return userMapper.toResponse(user);
@@ -40,6 +43,7 @@ public class UserService {
     }
 
     @Transactional
+    @CachePut(value = "users", key = "#userId")
     public UserResponse updateProfile(Long userId, UpdateProfileRequest request) {
         User user = findUserById(userId);
 

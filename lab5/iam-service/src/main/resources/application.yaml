@@ -30,6 +30,12 @@ spring:
           max-interval: 15s
           max-retries: 3
         default-requeue-rejected: false
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
 
 app:
   jwt:
