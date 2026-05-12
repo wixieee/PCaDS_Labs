@@ -1,0 +1,353 @@
+openapi: 3.0.3
+info:
+  title: IAM Service API
+  version: v0
+servers:
+  - url: http://localhost:8080/api
+    description: API Gateway url
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Реєстрація нового користувача
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistrationRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Вхід у систему
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Оновлення access токена
+      operationId: refresh
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      summary: Запит на відновлення пароля
+      operationId: forgotPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+  /auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      summary: Скидання пароля
+      operationId: resetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+  /users/me:
+    get:
+      tags:
+        - User Profile
+      summary: Отримати дані свого профілю
+      operationId: getMyProfile
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+    put:
+      tags:
+        - User Profile
+      summary: Оновити дані свого профілю
+      operationId: updateProfile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /users/me/password:
+    put:
+      tags:
+        - User Profile
+      summary: Змінити свій пароль
+      operationId: changePassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+  /organizations/{organizationId}/members:
+    post:
+      tags:
+        - Memberships
+      summary: Запросити користувача в організацію
+      operationId: invite
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteMemberRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+  /organizations/{organizationId}/members/{userId}:
+    delete:
+      tags:
+        - Memberships
+      summary: Видалити користувача з організації
+      operationId: remove
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+  /organizations/{organizationId}/members/{userId}/role:
+    put:
+      tags:
+        - Memberships
+      summary: Оновити роль користувача
+      operationId: updateRole
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoleRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+  /internal/memberships:
+    post:
+      tags:
+        - Internal
+      summary: Створити членство
+      operationId: createInternalMembership
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InternalMembershipRequest"
+        required: true
+      responses:
+        "201":
+          description: Created
+  /internal/users/{userId}/organizations:
+    get:
+      tags:
+        - Internal
+      summary: Отримати список ID організацій користувача
+      operationId: getUserOrganizationIds
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOrganizationsResponse"
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegistrationRequest:
+      type: object
+      required: [email, firstName, lastName, password]
+      properties:
+        firstName: { type: string, maxLength: 50 }
+        lastName: { type: string, maxLength: 50 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    RefreshTokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string }
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token: { type: string }
+        newPassword: { type: string, minLength: 6 }
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        firstName: { type: string, maxLength: 50 }
+        lastName: { type: string, maxLength: 50 }
+        email: { type: string, format: email }
+
+    ChangePasswordRequest:
+      type: object
+      required: [oldPassword, newPassword]
+      properties:
+        oldPassword: { type: string }
+        newPassword: { type: string, minLength: 6 }
+
+    InviteMemberRequest:
+      type: object
+      required: [email, role]
+      properties:
+        email: { type: string, format: email }
+        role: { $ref: "#/components/schemas/Role" }
+
+    UpdateRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role: { $ref: "#/components/schemas/Role" }
+
+    InternalMembershipRequest:
+      type: object
+      required: [userId, organizationId, role]
+      properties:
+        userId: { type: integer, format: int64 }
+        organizationId: { type: integer, format: int64 }
+        role: { $ref: "#/components/schemas/Role" }
+
+    UserOrganizationsResponse:
+      type: object
+      properties:
+        organizationIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+
+    UserResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+
+    Role:
+      type: string
+      enum: [OWNER, ADMIN, ANALYST, VIEWER]

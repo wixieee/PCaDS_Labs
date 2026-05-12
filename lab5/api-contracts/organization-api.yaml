@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+  title: Organization Service API
+  version: v0
+servers:
+  - url: http://localhost:8080/api
+    description: API Gateway url
+paths:
+  /organizations:
+    get:
+      tags:
+        - Organizations
+      summary: Отримати всі свої організації
+      operationId: getAllMyOrganizations
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrganizationResponse"
+    post:
+      tags:
+        - Organizations
+      summary: Створити нову організацію
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrganizationRequest"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/OrganizationResponse"
+  /organizations/{id}:
+    get:
+      tags:
+        - Organizations
+      summary: Отримати інформацію про конкретну організацію за її ID
+      operationId: getById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/OrganizationResponse"
+    put:
+      tags:
+        - Organizations
+      summary: Оновити назву та billing email організації
+      operationId: update
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrganizationRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/OrganizationResponse"
+    delete:
+      tags:
+        - Organizations
+      summary: Видалити організацію
+      operationId: delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: No Content
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    OrganizationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        billingEmail:
+          type: string
+          format: email
+      required:
+        - name
+        - billingEmail
+    OrganizationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        billingEmail:
+          type: string
+    InternalMembershipRequest:
+      type: object
+      required: [ userId, organizationId, role ]
+      properties:
+        userId:
+          type: integer
+          format: int64
+        organizationId:
+          type: integer
+          format: int64
+        role:
+          type: string
+          enum: [ OWNER, ADMIN, ANALYST, VIEWER ]
+    UserOrganizationsResponse:
+      type: object
+      properties:
+        organizationIds:
+          type: array
+          items:
+            type: integer
+            format: int64

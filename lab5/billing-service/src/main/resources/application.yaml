@@ -1,0 +1,48 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: billing-service
+  datasource:
+    url: jdbc:h2:mem:billingdb
+    driverClassName: org.h2.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3s
+          multiplier: 2.0
+          max-interval: 15s
+          max-retries: 3
+        default-requeue-rejected: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiry: ${JWT_EXPIRY}
+  frontend:
+    url: ${FRONTEND_URL}
+
+stripe:
+  api-key: ${STRIPE_SECRET}
+  webhook-secret: ${WEBHOOK_SECRET}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_USERNAME}:${EUREKA_PASSWORD}@${EUREKA_HOST}:${EUREKA_PORT}/eureka/

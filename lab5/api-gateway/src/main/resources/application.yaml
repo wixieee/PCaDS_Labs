@@ -1,0 +1,79 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: "*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders: "*"
+                maxAge: 3600
+          discovery:
+            locator:
+              enabled: true
+          routes:
+            - id: iam-service-route
+              uri: lb://iam-service
+              order: 1
+              predicates:
+                - Path=/api/auth/**, /api/users/**, /api/organizations/*/members/**
+              filters:
+                - StripPrefix=1
+
+            - id: audit-service-route
+              uri: lb://audit-service
+              order: 1
+              predicates:
+                - Path=/api/organizations/*/audit/**
+              filters:
+                - StripPrefix=1
+
+            - id: organization-service-route
+              uri: lb://organization-service
+              order: 1
+              predicates:
+                - Path=/api/organizations, /api/organizations/{id}
+              filters:
+                - StripPrefix=1
+
+            - id: billing-service-route
+              uri: lb://billing-service
+              order: 1
+              predicates:
+                - Path=/api/organizations/*/subscription/**
+              filters:
+                - StripPrefix=1
+
+            - id: stripe-webhook-route
+              uri: lb://billing-service
+              order: 1
+              predicates:
+                - Path=/api/webhooks/stripe
+              filters:
+                - StripPrefix=1
+
+            - id: analysis-service-route
+              uri: lb://analysis-service
+              order: 1
+              predicates:
+                - Path=/api/organizations/*/limits, /api/organizations/*/analysis/**
+              filters:
+                - StripPrefix=1
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_USERNAME}:${EUREKA_PASSWORD}@${EUREKA_HOST}:${EUREKA_PORT}/eureka/
