@@ -1,0 +1,42 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: notification-service
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SMTP_EMAIL}
+    password: ${SMTP_KEY}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3s
+          multiplier: 2.0
+          max-interval: 15s
+          max-retries: 3
+        default-requeue-rejected: false
+
+app:
+  frontend:
+    url: ${FRONTEND_URL}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_USERNAME}:${EUREKA_PASSWORD}@${EUREKA_HOST}:${EUREKA_PORT}/eureka/
