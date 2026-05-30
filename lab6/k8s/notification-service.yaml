@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification
+  template:
+    metadata:
+      labels:
+        app: notification
+    spec:
+      containers:
+        - name: notification
+          image: lab5-notification-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8084
+          env:
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
+            - name: SMTP_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: SMTP_EMAIL
+            - name: SMTP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: SMTP_KEY
+            - name: FRONTEND_URL
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: FRONTEND_URL
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: RABBITMQ_PASSWORD
+            - name: EUREKA_HOST
+              value: "discovery-server"
+            - name: EUREKA_PORT
+              value: "8761"
+            - name: EUREKA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: EUREKA_USERNAME
+            - name: EUREKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: EUREKA_PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+spec:
+  selector:
+    app: notification
+  ports:
+    - protocol: TCP
+      port: 8084
+      targetPort: 8084

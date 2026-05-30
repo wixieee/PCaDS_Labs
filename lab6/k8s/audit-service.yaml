@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: audit
+  template:
+    metadata:
+      labels:
+        app: audit
+    spec:
+      containers:
+        - name: audit
+          image: lab5-audit-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8083
+          env:
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: DB_PASSWORD
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: RABBITMQ_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: JWT_SECRET
+            - name: JWT_EXPIRY
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: JWT_EXPIRY
+            - name: EUREKA_HOST
+              value: "discovery-server"
+            - name: EUREKA_PORT
+              value: "8761"
+            - name: EUREKA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: EUREKA_USERNAME
+            - name: EUREKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: EUREKA_PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-service
+spec:
+  selector:
+    app: audit
+  ports:
+    - protocol: TCP
+      port: 8083
+      targetPort: 8083

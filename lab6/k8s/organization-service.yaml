@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: organization-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: organization
+  template:
+    metadata:
+      labels:
+        app: organization
+    spec:
+      containers:
+        - name: organization
+          image: lab5-organization-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8085
+          env:
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: DB_PASSWORD
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: RABBITMQ_PASSWORD
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: REDIS_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: JWT_SECRET
+            - name: JWT_EXPIRY
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: JWT_EXPIRY
+            - name: EUREKA_HOST
+              value: "discovery-server"
+            - name: EUREKA_PORT
+              value: "8761"
+            - name: EUREKA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: EUREKA_USERNAME
+            - name: EUREKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saas-secrets
+                  key: EUREKA_PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: organization-service
+spec:
+  selector:
+    app: organization
+  ports:
+    - protocol: TCP
+      port: 8085
+      targetPort: 8085
